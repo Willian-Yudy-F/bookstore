@@ -1,0 +1,34 @@
+/* Design inspirado no Booktopia */
+:root {
+    --primary-color: #2563eb;
+    --text-dark: #1e293b;
+    --bg-light: #f8fafc;
+    --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+}
+
+body { font-family: 'Inter', sans-serif; background: var(--bg-light); color: var(--text-dark); }
+
+/* Grid de Livros Avançada  */
+.book-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 2rem;
+    padding: 2rem;
+}
+
+.book-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    transition: transform 0.2s;
+}
+
+.book-card:hover { transform: translateY(-5px); }
+
+.book-card img {
+    width: 100%;
+    height: 280px;
+    object-fit: cover;
+    border-radius: 8px;
+}
