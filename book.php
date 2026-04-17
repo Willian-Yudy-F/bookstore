@@ -3,8 +3,11 @@ include 'db.php';
 include 'navbar.php'; 
 
 $id = $_GET['id'];
-$sql = "SELECT * FROM books WHERE id = $id";
-$result = mysqli_query($conn, $sql);
+$sql = "SELECT * FROM books WHERE id = ?";
+$stmt = mysqli_prepare($conn, $sql);
+mysqli_stmt_bind_param($stmt, "i", $id); // "i" = integer
+mysqli_stmt_execute($stmt);
+$result = mysqli_stmt_get_result($stmt);
 $book = mysqli_fetch_assoc($result);
 ?>
 <div style="font-family: Arial; padding: 20px;">
