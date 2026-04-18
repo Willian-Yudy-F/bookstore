@@ -1,3 +1,3 @@
 <?php
-define('SITE_NAME', 'Minha Livraria Digital');
+define('SITE_NAME', 'My Digital Bookshelf');
 ?>
