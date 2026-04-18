@@ -1,9 +1,8 @@
 <?php
-// Processes the user's login
+// User login — simplified version for greater compatibility
 session_start();
 include 'db.php';
 
-// If you are already logged in, you will be redirected to the home page
 if (isset($_SESSION['user_id'])) {
     header("Location: index.php");
     exit();
@@ -12,23 +11,22 @@ if (isset($_SESSION['user_id'])) {
 $error = '';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $username = trim($_POST['username']);
+    $username = mysqli_real_escape_string($conn, trim($_POST['username']));
     $password = $_POST['password'];
 
-    // Search for the user by username in the database
-    $sql = "SELECT * FROM users WHERE username = ?";
-    $stmt = mysqli_prepare($conn, $sql);
-    mysqli_stmt_bind_param($stmt, "s", $username);
-    mysqli_stmt_execute($stmt);
-    $result = mysqli_stmt_get_result($stmt);
-    $user = mysqli_fetch_assoc($result);
+    // Busca usuário pelo username
+    $result = mysqli_query($conn, "SELECT * FROM users WHERE username='$username' LIMIT 1");
 
-    if ($user && password_verify($password, $user['password'])) {
-        // Login successful: saves ID and username for the session
-        $_SESSION['user_id'] = $user['id'];
-        $_SESSION['username'] = $user['username'];
-        header("Location: index.php");
-        exit();
+    if ($result && mysqli_num_rows($result) > 0) {
+        $user = mysqli_fetch_assoc($result);
+        if (password_verify($password, $user['password'])) {
+            $_SESSION['user_id'] = $user['id'];
+            $_SESSION['username'] = $user['username'];
+            header("Location: index.php");
+            exit();
+        } else {
+            $error = "Invalid username or password.";
+        }
     } else {
         $error = "Invalid username or password.";
     }
@@ -64,11 +62,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <div class="form-card">
             <h2>Sign In</h2>
             <p class="subtitle">Welcome back! Please enter your details.</p>
-
             <?php if ($error): ?>
                 <div class="error-box"><?php echo $error; ?></div>
             <?php endif; ?>
-
             <form method="POST">
                 <div class="form-group">
                     <label for="username">Username</label>
