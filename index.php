@@ -1,11 +1,11 @@
 <?php 
-// Inicia a sessão - Necessário para mostrar "Welcome, User" (Feedback da prof!)
+// Log in - Required to display ‘Welcome, User’ 
 if (session_status() === PHP_SESSION_NONE) { session_start(); }
 
 include 'db.php'; 
 include 'navbar.php'; 
 
-// 1. Lógica de Filtro e Busca - Atende ao requisito de "Search & Category filtering"
+// Filter and Search Logic – Meets the requirement for ‘Search & Category filtering’"
 $genre = isset($_GET['genre']) ? mysqli_real_escape_string($conn, $_GET['genre']) : '';
 $search = isset($_GET['search']) ? mysqli_real_escape_string($conn, $_GET['search']) : '';
 
@@ -13,7 +13,7 @@ $sql = "SELECT * FROM books WHERE 1=1";
 if ($genre) { $sql .= " AND genre = '$genre'"; }
 if ($search) { $sql .= " AND title LIKE '%$search%'"; }
 
-// O brief exige ordem aleatória na Home
+// The brief specifies a random order on the homepage
 $sql .= " ORDER BY RAND() LIMIT 4"; 
 $result = mysqli_query($conn, $sql);
 ?>
@@ -25,10 +25,10 @@ $result = mysqli_query($conn, $sql);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Booktopia Style | Digital Bookstore</title>
     <style>
-        /* VARIÁVEIS DE CORES - Deixa o site com cara de sistema profissional */
+        /* COLOUR VARIABLES - Gives the website a professional look */
         :root {
-            --primary: #2563eb;    /* Azul Booktopia */
-            --accent: #e41e26;     /* Vermelho para preços/destaques */
+            --primary: #2563eb;    /* Blue Booktopia */
+            --accent: #e41e26;     /* Red for prices/highlights */
             --dark: #1e293b;
             --light: #f8fafc;
             --border: #e2e8f0;
@@ -36,15 +36,15 @@ $result = mysqli_query($conn, $sql);
 
         body { font-family: 'Segoe UI', Roboto, sans-serif; background-color: var(--light); margin: 0; color: var(--dark); }
 
-        /* HEADER & SEARCH - Melhora a UI básica criticada pela prof */
+        /* HEADER & SEARCH - Improves the basic UI  */
         .hero { background: white; padding: 40px 20px; text-align: center; border-bottom: 1px solid var(--border); }
         .search-container input { padding: 12px; width: 350px; border: 1px solid var(--border); border-radius: 4px; }
         .search-container button { padding: 12px 25px; background: var(--primary); color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
 
-        /* LAYOUT PRINCIPAL (SIDEBAR + CONTENT) - Igual ao Booktopia */
+        /* MAIN LAYOUT (SIDEBAR + CONTENT) - Same as Booktopia */
         .main-layout { display: flex; max-width: 1200px; margin: 30px auto; gap: 30px; padding: 0 20px; }
         
-        /* SIDEBAR - Atende ao requisito de Category Filtering */
+        /* SIDEBAR - Meets the requirement for category filtering */
         .sidebar { width: 250px; background: white; padding: 20px; border-radius: 8px; height: fit-content; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
         .sidebar h3 { font-size: 1.1rem; border-bottom: 2px solid var(--primary); padding-bottom: 10px; margin-top: 0; }
         .sidebar ul { list-style: none; padding: 0; }
@@ -52,11 +52,11 @@ $result = mysqli_query($conn, $sql);
         .sidebar a { text-decoration: none; color: #444; font-size: 0.95rem; transition: 0.3s; }
         .sidebar a:hover { color: var(--primary); padding-left: 5px; }
 
-        /* GRADE DE LIVROS */
+        /* BOOK LIST */
         .content { flex: 1; }
         .book-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 25px; }
         
-        /* CARTÃO DO LIVRO - Estilo Profissional */
+        /* BOOK CARD - Professional Style */
         .book-card { background: white; border: 1px solid var(--border); padding: 15px; border-radius: 4px; transition: 0.3s; position: relative; }
         .book-card:hover { box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); transform: translateY(-3px); }
         .book-card img { width: 100%; height: 280px; object-fit: contain; margin-bottom: 15px; }
