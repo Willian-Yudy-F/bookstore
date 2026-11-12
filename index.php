@@ -88,6 +88,7 @@ if ($genreFilter !== '') {
                     <a href="book.php?id=<?php echo $book['id']; ?>" class="btn btn-primary">View details</a>
                     <?php if (isset($_SESSION['user_id'])): ?>
                         <form method="POST" action="toggle_favorite.php" style="margin:0;">
+                            <?php echo csrf_input(); ?>
                             <input type="hidden" name="book_id" value="<?php echo $book['id']; ?>">
                             <button type="submit" class="btn btn-outline">&#9825; Add to Favourites</button>
                         </form>

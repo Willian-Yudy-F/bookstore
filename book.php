@@ -1,7 +1,7 @@
 <?php
 session_start();
 include 'db.php';
-include 'navbar.php';
+require_once 'security.php';
 
 if (isset($_GET['id']) && is_numeric($_GET['id'])) {
     $id = $_GET['id'];
@@ -10,8 +10,10 @@ if (isset($_GET['id']) && is_numeric($_GET['id'])) {
     exit();
 }
 
-$sql = "SELECT * FROM books WHERE id = $id";
-$result = mysqli_query($conn, $sql);
+$bookStmt = mysqli_prepare($conn, 'SELECT * FROM books WHERE id=?');
+mysqli_stmt_bind_param($bookStmt, 'i', $id);
+mysqli_stmt_execute($bookStmt);
+$result = mysqli_stmt_get_result($bookStmt);
 $book = mysqli_fetch_assoc($result);
 
 if (!$book) {
@@ -23,6 +25,7 @@ if (!$book) {
 $review_error = '';
 $review_success = '';
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_review'])) {
+    require_valid_csrf();
     if (!isset($_SESSION['user_id'])) {
         $review_error = "You must be logged in to submit a review.";
     } else {
@@ -33,6 +36,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_review'])) {
             $review_error = "Please select a rating.";
         } elseif (empty($comment)) {
             $review_error = "Please write a comment.";
+        } elseif (strlen($comment) > 2000) {
+            $review_error = "Keep the review under 2,000 characters.";
         } else {
             $stmt = mysqli_prepare($conn, "INSERT INTO reviews (book_id, user_id, rating, comment) VALUES (?, ?, ?, ?)");
             mysqli_stmt_bind_param($stmt, "iiis", $id, $user_id, $rating, $comment);
@@ -46,10 +51,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['submit_review'])) {
 }
 
 // Fetch reviews
-$reviews_result = mysqli_query($conn, "SELECT r.*, u.name FROM reviews r JOIN users u ON r.user_id = u.id WHERE r.book_id = $id ORDER BY r.created_at DESC");
+$reviewsStmt = mysqli_prepare($conn, 'SELECT r.*, u.name FROM reviews r JOIN users u ON r.user_id = u.id WHERE r.book_id=? ORDER BY r.created_at DESC');
+mysqli_stmt_bind_param($reviewsStmt, 'i', $id);
+mysqli_stmt_execute($reviewsStmt);
+$reviews_result = mysqli_stmt_get_result($reviewsStmt);
 
 // Average rating
-$avg_result = mysqli_query($conn, "SELECT AVG(rating) as avg_rating, COUNT(*) as total FROM reviews WHERE book_id = $id");
+$avgStmt = mysqli_prepare($conn, 'SELECT AVG(rating) as avg_rating, COUNT(*) as total FROM reviews WHERE book_id=?');
+mysqli_stmt_bind_param($avgStmt, 'i', $id);
+mysqli_stmt_execute($avgStmt);
+$avg_result = mysqli_stmt_get_result($avgStmt);
 $avg_data = mysqli_fetch_assoc($avg_result);
 $avg_rating = round($avg_data['avg_rating'], 1);
 $total_reviews = $avg_data['total'];
@@ -92,6 +103,7 @@ $total_reviews = $avg_data['total'];
     </style>
 </head>
 <body>
+<?php include 'navbar.php'; ?>
 <div class="container">
     <div class="breadcrumb">
         <a href="index.php">Home</a> &gt; <strong><?php echo htmlspecialchars($book['title']); ?></strong>
@@ -157,6 +169,7 @@ $total_reviews = $avg_data['total'];
         <div class="review-form">
             <h3>Write a Review</h3>
             <form method="POST">
+                <?php echo csrf_input(); ?>
                 <div class="star-rating">
                     <input type="radio" id="star5" name="rating" value="5">
                     <label for="star5">★</label>

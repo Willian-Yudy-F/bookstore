@@ -1,9 +1,10 @@
 <?php
 // Make sure session is started before any output
 if (session_status() === PHP_SESSION_NONE) { session_start(); }
+require_once 'security.php';
 
 // Genres shown in the dropdown (keep in sync with the `genre` column of `books`)
-$bt_genres = ['Finance', 'Investing', 'Business', 'Mindset', 'Lifestyle', 'Habits'];
+$bt_genres = ['Finance', 'Investing', 'Business', 'Mindset', 'Lifestyle', 'Self-Help'];
 
 // What is the current genre filter (used to highlight the active tab)
 $bt_current = $_GET['genre'] ?? '';
@@ -33,7 +34,10 @@ $bt_current = $_GET['genre'] ?? '';
       <?php if (isset($_SESSION['user_id'])): ?>
         <a href="favorites.php">&#9825; Favourites</a>
         <a href="account.php">My Account</a>
-        <a href="logout.php" class="cta">Logout</a>
+        <form action="logout.php" method="POST" class="logout-form">
+          <?php echo csrf_input(); ?>
+          <button type="submit" class="cta">Logout</button>
+        </form>
       <?php else: ?>
         <a href="login.php">Sign In</a>
         <a href="register.php" class="cta">Create account</a>

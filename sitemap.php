@@ -43,11 +43,12 @@ session_start();
 
         <h2>Browse by Genre</h2>
         <ul>
-            <li><a href="index.php?genre=Fiction">Fiction</a></li>
-            <li><a href="index.php?genre=Non-Fiction">Non-Fiction</a></li>
-            <li><a href="index.php?genre=Romance">Romance</a></li>
-            <li><a href="index.php?genre=Thriller">Thriller</a></li>
             <li><a href="index.php?genre=Finance">Finance</a></li>
+            <li><a href="index.php?genre=Investing">Investing</a></li>
+            <li><a href="index.php?genre=Business">Business</a></li>
+            <li><a href="index.php?genre=Mindset">Mindset</a></li>
+            <li><a href="index.php?genre=Lifestyle">Lifestyle</a></li>
+            <li><a href="index.php?genre=Self-Help">Self-Help</a></li>
         </ul>
     </div>
 </div>

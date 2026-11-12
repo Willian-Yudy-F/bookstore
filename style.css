@@ -30,6 +30,7 @@ body {
 
 a { color: var(--bt-blue); text-decoration: none; }
 a:hover { text-decoration: underline; }
+:focus-visible { outline: 3px solid var(--bt-orange); outline-offset: 3px; }
 
 .container {
   max-width: 1180px;
@@ -99,6 +100,13 @@ a:hover { text-decoration: underline; }
   display: flex;
   gap: 10px;
   align-items: center;
+}
+.logout-form { margin: 0; }
+.bt-account button {
+  border: 0;
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
 }
 .bt-account a {
   color: #fff;
@@ -248,6 +256,14 @@ a:hover { text-decoration: underline; }
   transition: transform 0.3s;
 }
 .book-card:hover .cover img { transform: scale(1.04); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
 
 .book-card .genre-tag {
   display: inline-block;

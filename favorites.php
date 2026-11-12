@@ -2,6 +2,7 @@
 // User's favourites page
 session_start();
 include 'db.php';
+require_once 'security.php';
 
 // Redirects to the login page if you are not logged in
 if (!isset($_SESSION['user_id'])) {
@@ -13,17 +14,22 @@ $uid = $_SESSION['user_id'];
 
 // Remove a book from your favourites if the form has been submitted
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['remove_id'])) {
+    require_valid_csrf();
     $bookId = (int)$_POST['remove_id'];
-    mysqli_query($conn, "DELETE FROM favorites WHERE user_id=$uid AND book_id=$bookId");
+    $delete = mysqli_prepare($conn, 'DELETE FROM favorites WHERE user_id=? AND book_id=?');
+    mysqli_stmt_bind_param($delete, 'ii', $uid, $bookId);
+    mysqli_stmt_execute($delete);
     header("Location: favorites.php");
     exit();
 }
 
 // Search for all the user's favourite books
-$result = mysqli_query($conn, "SELECT b.* FROM books b 
-    INNER JOIN favorites f ON b.id = f.book_id 
-    WHERE f.user_id = $uid 
-    ORDER BY f.id DESC");
+$favoritesStmt = mysqli_prepare($conn, 'SELECT b.* FROM books b
+    INNER JOIN favorites f ON b.id = f.book_id
+    WHERE f.user_id=? ORDER BY f.id DESC');
+mysqli_stmt_bind_param($favoritesStmt, 'i', $uid);
+mysqli_stmt_execute($favoritesStmt);
+$result = mysqli_stmt_get_result($favoritesStmt);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -72,6 +78,7 @@ $result = mysqli_query($conn, "SELECT b.* FROM books b
                 <p class="author">By <?php echo htmlspecialchars($book['author']); ?></p>
                 <a href="book.php?id=<?php echo $book['id']; ?>" class="btn-view">View Details</a>
                 <form method="POST">
+                    <?php echo csrf_input(); ?>
                     <input type="hidden" name="remove_id" value="<?php echo $book['id']; ?>">
                     <button type="submit" class="btn-remove">Remove from Favourites</button>
                 </form>

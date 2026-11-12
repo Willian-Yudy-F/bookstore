@@ -2,6 +2,7 @@
 // Process the registration of a new user
 session_start();
 include 'db.php';
+require_once 'security.php';
 
 // If you are already logged in, you will be redirected to the home page
 if (isset($_SESSION['user_id'])) {
@@ -12,25 +13,34 @@ if (isset($_SESSION['user_id'])) {
 $error = '';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $username = trim(mysqli_real_escape_string($conn, $_POST['username']));
-    $email    = trim(mysqli_real_escape_string($conn, $_POST['email']));
-    $password = $_POST['password'];
-    $confirm  = $_POST['confirm_password'];
+    require_valid_csrf();
+    $username = trim($_POST['username'] ?? '');
+    $email    = trim($_POST['email'] ?? '');
+    $password = $_POST['password'] ?? '';
+    $confirm  = $_POST['confirm_password'] ?? '';
 
-    if ($password !== $confirm) {
+    if ($username === '' || strlen($username) > 100) {
+        $error = "Enter a username with no more than 100 characters.";
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $error = "Enter a valid email address.";
+    } elseif ($password !== $confirm) {
         $error = "Passwords do not match.";
     } elseif (strlen($password) < 6) {
         $error = "Password must be at least 6 characters.";
     } else {
         // Check whether the username or email address is already in use
-        $check = mysqli_query($conn, "SELECT id FROM users WHERE name='$username' OR email='$email'");
+        $checkStmt = mysqli_prepare($conn, 'SELECT id FROM users WHERE name=? OR email=?');
+        mysqli_stmt_bind_param($checkStmt, 'ss', $username, $email);
+        mysqli_stmt_execute($checkStmt);
+        $check = mysqli_stmt_get_result($checkStmt);
         if (mysqli_num_rows($check) > 0) {
             $error = "Username or email is already in use.";
         } else {
             // Encrypt the password before saving it to the database
             $hashed = password_hash($password, PASSWORD_DEFAULT);
-            $sql = "INSERT INTO users (name, email, password) VALUES ('$username', '$email', '$hashed')";
-            if (mysqli_query($conn, $sql)) {
+            $insert = mysqli_prepare($conn, 'INSERT INTO users (name, email, password) VALUES (?, ?, ?)');
+            mysqli_stmt_bind_param($insert, 'sss', $username, $email, $hashed);
+            if (mysqli_stmt_execute($insert)) {
                 header("Location: login.php");
                 exit();
             } else {
@@ -76,6 +86,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <?php endif; ?>
 
             <form method="POST">
+                <?php echo csrf_input(); ?>
                 <div class="form-group">
                     <label for="username">Username</label>
                     <input type="text" id="username" name="username" placeholder="Choose a username" required>

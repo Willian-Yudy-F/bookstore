@@ -2,6 +2,7 @@
 // User account page — update profile, password and manage reviews
 session_start();
 include 'db.php';
+require_once 'security.php';
 
 // Redirects to the login page if you are not logged in
 if (!isset($_SESSION['user_id'])) {
@@ -14,27 +15,40 @@ $message = '';
 
 // Processes the form fields
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    require_valid_csrf();
     $action = $_POST['action'] ?? '';
 
     if ($action === 'update_profile') {
         // Update your username and email address
-        $newUser  = trim(mysqli_real_escape_string($conn, $_POST['username']));
-        $newEmail = trim(mysqli_real_escape_string($conn, $_POST['email']));
-        $conflict = mysqli_query($conn, "SELECT id FROM users WHERE (name='$newUser' OR email='$newEmail') AND id != $uid");
-        if (mysqli_num_rows($conflict) > 0) {
+        $newUser  = trim($_POST['username'] ?? '');
+        $newEmail = trim($_POST['email'] ?? '');
+        $conflictStmt = mysqli_prepare($conn, 'SELECT id FROM users WHERE (name=? OR email=?) AND id != ?');
+        mysqli_stmt_bind_param($conflictStmt, 'ssi', $newUser, $newEmail, $uid);
+        mysqli_stmt_execute($conflictStmt);
+        $conflict = mysqli_stmt_get_result($conflictStmt);
+        if ($newUser === '' || strlen($newUser) > 100) {
+            $message = 'error:Enter a username with no more than 100 characters.';
+        } elseif (!filter_var($newEmail, FILTER_VALIDATE_EMAIL)) {
+            $message = 'error:Enter a valid email address.';
+        } elseif (mysqli_num_rows($conflict) > 0) {
             $message = 'error:Username or email is already in use.';
         } else {
-            mysqli_query($conn, "UPDATE users SET name='$newUser', email='$newEmail' WHERE id=$uid");
+            $update = mysqli_prepare($conn, 'UPDATE users SET name=?, email=? WHERE id=?');
+            mysqli_stmt_bind_param($update, 'ssi', $newUser, $newEmail, $uid);
+            mysqli_stmt_execute($update);
             $_SESSION['user'] = $newUser;
             $message = 'success:Profile updated successfully!';
         }
 
     } elseif ($action === 'update_password') {
         // Update your password after checking the current one
-        $current = $_POST['current_password'];
-        $newPass = $_POST['new_password'];
-        $confirm = $_POST['confirm_password'];
-        $userData = mysqli_fetch_assoc(mysqli_query($conn, "SELECT password FROM users WHERE id=$uid"));
+        $current = $_POST['current_password'] ?? '';
+        $newPass = $_POST['new_password'] ?? '';
+        $confirm = $_POST['confirm_password'] ?? '';
+        $passwordStmt = mysqli_prepare($conn, 'SELECT password FROM users WHERE id=?');
+        mysqli_stmt_bind_param($passwordStmt, 'i', $uid);
+        mysqli_stmt_execute($passwordStmt);
+        $userData = mysqli_fetch_assoc(mysqli_stmt_get_result($passwordStmt));
 
         if (!password_verify($current, $userData['password'])) {
             $message = 'error:Current password is incorrect.';
@@ -44,24 +58,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $message = 'error:Password must be at least 6 characters.';
         } else {
             $hashed = password_hash($newPass, PASSWORD_DEFAULT);
-            mysqli_query($conn, "UPDATE users SET password='$hashed' WHERE id=$uid");
+            $updatePassword = mysqli_prepare($conn, 'UPDATE users SET password=? WHERE id=?');
+            mysqli_stmt_bind_param($updatePassword, 'si', $hashed, $uid);
+            mysqli_stmt_execute($updatePassword);
             $message = 'success:Password updated successfully!';
         }
 
     } elseif ($action === 'delete_review') {
         // Remove a user review
-        $rid = (int)$_POST['review_id'];
-        mysqli_query($conn, "DELETE FROM reviews WHERE id=$rid AND user_id=$uid");
+        $rid = (int)($_POST['review_id'] ?? 0);
+        $deleteReview = mysqli_prepare($conn, 'DELETE FROM reviews WHERE id=? AND user_id=?');
+        mysqli_stmt_bind_param($deleteReview, 'ii', $rid, $uid);
+        mysqli_stmt_execute($deleteReview);
         $message = 'success:Review deleted.';
     }
 }
 
 // Retrieve the user's current data
-$user    = mysqli_fetch_assoc(mysqli_query($conn, "SELECT * FROM users WHERE id=$uid"));
+$userStmt = mysqli_prepare($conn, 'SELECT id, name, email FROM users WHERE id=?');
+mysqli_stmt_bind_param($userStmt, 'i', $uid);
+mysqli_stmt_execute($userStmt);
+$user = mysqli_fetch_assoc(mysqli_stmt_get_result($userStmt));
 // Search for user reviews by book title
-$reviews = mysqli_query($conn, "SELECT r.*, b.title AS book_title FROM reviews r 
-    INNER JOIN books b ON r.book_id = b.id 
-    WHERE r.user_id=$uid ORDER BY r.created_at DESC");
+$reviewsStmt = mysqli_prepare($conn, 'SELECT r.*, b.title AS book_title FROM reviews r
+    INNER JOIN books b ON r.book_id = b.id
+    WHERE r.user_id=? ORDER BY r.created_at DESC');
+mysqli_stmt_bind_param($reviewsStmt, 'i', $uid);
+mysqli_stmt_execute($reviewsStmt);
+$reviews = mysqli_stmt_get_result($reviewsStmt);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -111,6 +135,7 @@ $reviews = mysqli_query($conn, "SELECT r.*, b.title AS book_title FROM reviews r
     <div class="card">
         <h2>Update Profile</h2>
         <form method="POST">
+            <?php echo csrf_input(); ?>
             <input type="hidden" name="action" value="update_profile">
             <div class="form-group">
                 <label>Username</label>
@@ -128,6 +153,7 @@ $reviews = mysqli_query($conn, "SELECT r.*, b.title AS book_title FROM reviews r
     <div class="card">
         <h2>Change Password</h2>
         <form method="POST">
+            <?php echo csrf_input(); ?>
             <input type="hidden" name="action" value="update_password">
             <div class="form-group">
                 <label>Current Password</label>
@@ -158,6 +184,7 @@ $reviews = mysqli_query($conn, "SELECT r.*, b.title AS book_title FROM reviews r
                     <p class="rev-date"><?php echo date('M d, Y', strtotime($rev['created_at'])); ?></p>
                 </div>
                 <form method="POST">
+                    <?php echo csrf_input(); ?>
                     <input type="hidden" name="action" value="delete_review">
                     <input type="hidden" name="review_id" value="<?php echo $rev['id']; ?>">
                     <button type="submit" class="btn-red" onclick="return confirm('Delete this review?')">Delete</button>

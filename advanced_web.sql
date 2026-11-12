@@ -64,14 +64,7 @@ CREATE TABLE `favorites` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `favorites`
---
-
-LOCK TABLES `favorites` WRITE;
-/*!40000 ALTER TABLE `favorites` DISABLE KEYS */;
-INSERT INTO `favorites` VALUES (1,6,8,'2026-04-20 01:14:04');
-/*!40000 ALTER TABLE `favorites` ENABLE KEYS */;
-UNLOCK TABLES;
+-- No favourite records are included. User data belongs in the runtime database only.
 
 --
 -- Table structure for table `reviews`
@@ -96,14 +89,7 @@ CREATE TABLE `reviews` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `reviews`
---
-
-LOCK TABLES `reviews` WRITE;
-/*!40000 ALTER TABLE `reviews` DISABLE KEYS */;
-INSERT INTO `reviews` VALUES (1,5,6,5,'the best','2026-04-19 23:31:50'),(2,4,6,5,'the best','2026-04-20 00:51:58');
-/*!40000 ALTER TABLE `reviews` ENABLE KEYS */;
-UNLOCK TABLES;
+-- No review records are included. User data belongs in the runtime database only.
 
 --
 -- Table structure for table `users`
@@ -123,14 +109,7 @@ CREATE TABLE `users` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `users`
---
-
-LOCK TABLES `users` WRITE;
-/*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,'Willian','futemawillian.aud@gmail.com','$2y$10$LPQ63IuDmCYX.LBJK2f8Hu/KvpRo2EF1DhBZVGJXslSW/2JFd1LtS'),(2,'Luiza','taro@perfeito.com','$2y$10$LjkTFy95rZlHwiW0hkuyqeCeh4r4gRezL0dr1shgnSj1OmOWlr87G'),(3,'Willian Futema','15160@ait.com','$2y$10$vjyO0ix02x5AwIMYXz2EB.Si6HS8FsOnZBtCbfwejMW3UARvslFT6'),(6,'Test','test@test.com','$2y$10$c/G8e4.UHUUAm9/l8aoBtOPwjokljjZ8UGSG00eIUGVPFUNa4lUfK');
-/*!40000 ALTER TABLE `users` ENABLE KEYS */;
-UNLOCK TABLES;
+-- No user records or password hashes are included in source control.
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;

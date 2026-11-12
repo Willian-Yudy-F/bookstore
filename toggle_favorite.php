@@ -1,10 +1,12 @@
 <?php
 session_start();
 include 'db.php';
+require_once 'security.php';
 if (!isset($_SESSION['user_id']) || !isset($_POST['book_id'])) {
     header('Location: index.php');
     exit();
 }
+require_valid_csrf();
 $user_id = $_SESSION['user_id'];
 $book_id = intval($_POST['book_id']);
 $check = mysqli_prepare($conn, 'SELECT id FROM favorites WHERE user_id=? AND book_id=?');
